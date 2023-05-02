@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher, executor, types
 import asyncio
 import aioschedule
 
-from background import keep_alive
+from web_server import keep_alive
 
 load_dotenv()
 
@@ -56,11 +56,20 @@ async def send_news():
     await bot.send_message(USERNAME, convert_data())
 
 
+async def send_ok():
+    await bot.send_message(USERNAME, 'Сервер активен')
+
+
+@dp.message_handler()
+async def send_answer(message):
+    await send_news()
+
+
 async def scheduler():
-    aioschedule.every(3).seconds.do(send_news)
-    # aioschedule.every().day.at('8:30').do(send_news)
-    # aioschedule.every().day.at('13:00').do(send_news)
-    # aioschedule.every().day.at('19:00').do(send_news)
+    aioschedule.every().hour.do(send_ok)
+    aioschedule.every().day.at('8:30').do(send_news)
+    aioschedule.every().day.at('13:00').do(send_news)
+    aioschedule.every().day.at('19:00').do(send_news)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
