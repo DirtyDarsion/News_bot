@@ -51,7 +51,7 @@ def convert_data():
 
 
 async def send_news():
-    await bot.send_message(375244111, convert_data())
+    await bot.send_message(USER, convert_data())
 
 
 async def scheduler():
