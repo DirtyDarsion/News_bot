@@ -7,6 +7,8 @@ from aiogram import Bot, Dispatcher, executor, types
 import asyncio
 import aioschedule
 
+from background import keep_alive
+
 load_dotenv()
 
 USER = os.getenv('USER')
@@ -62,6 +64,7 @@ async def scheduler():
 
 
 async def on_startup(_):
+    keep_alive()
     asyncio.create_task(scheduler())
 
 
