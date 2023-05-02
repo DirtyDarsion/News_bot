@@ -1,4 +1,5 @@
 import os
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -15,10 +16,26 @@ dp = Dispatcher(bot)
 
 
 def get_data():
+    # Получение данных о валюте
+    try:
+        valute = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+        valute = valute.json()['Valute']
+
+        usd = valute['USD']['Value']
+        usd = round(usd, 2)
+        eur = valute['EUR']['Value']
+        eur = round(usd, 2)
+    except requests.exceptions.JSONDecodeError:
+        usd = 'Ошибка'
+        eur = 'Ошибка'
+
     data = {
         'Время': datetime.now().strftime('%H:%M'),
-        'Дата': datetime.now().strftime('%d.%m.%y')
+        'Дата': datetime.now().strftime('%d.%m.%y'),
+        'Курс доллара': usd,
+        'Курс евро': eur
     }
+
     return data
 
 
