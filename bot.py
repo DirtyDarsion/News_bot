@@ -1,0 +1,52 @@
+import os
+from datetime import datetime
+from dotenv import load_dotenv
+
+from aiogram import Bot, Dispatcher, executor, types
+import asyncio
+import aioschedule
+
+load_dotenv()
+
+USER = os.getenv('USER')
+TOKEN = os.getenv('TOKEN')
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
+
+
+def get_data():
+    data = {
+        'Время': datetime.now().strftime('%H:%M'),
+        'Дата': datetime.now().strftime('%d.%m.%y')
+    }
+    return data
+
+
+def convert_data():
+    data = get_data()
+    output = ''
+
+    for key, item in data.items():
+        output += f'{key}: {item}\n'
+    output = output[:-1]
+
+    return output
+
+
+async def send_news():
+    await bot.send_message(375244111, convert_data())
+
+
+async def scheduler():
+    aioschedule.every(3).seconds.do(send_news)
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
+
+
+async def on_startup(_):
+    asyncio.create_task(scheduler())
+
+
+if __name__ == '__main__':
+    executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
