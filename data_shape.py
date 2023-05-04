@@ -1,5 +1,8 @@
 import requests
+import pytz
 from datetime import datetime
+
+tz = pytz.timezone('Asia/Omsk')
 
 conditions = {
     'clear': 'ясно',
@@ -59,8 +62,8 @@ def get_data(yandex_api_key):
 
     # Формирование данных для вывода
     data = {
-        'Время': datetime.now().strftime('%H:%M'),
-        'Дата': datetime.now().strftime('%d.%m.%y'),
+        'Время': datetime.now(tz).strftime('%H:%M'),
+        'Дата': datetime.now(tz).strftime('%d.%m.%y'),
         'Курс доллара': usd,
         'Курс евро': eur,
         'Город': city,

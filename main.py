@@ -1,6 +1,5 @@
 import os
 import requests
-import pytz
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -18,8 +17,6 @@ YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
 TOKEN = os.getenv('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-
-tz = pytz.timezone('Asia/Omsk')
 
 
 async def send_news():
@@ -39,10 +36,10 @@ async def send_answer(message):
 
 
 async def scheduler():
-    aioschedule.every().day.at('8:30', tz).do(send_news)
-    aioschedule.every().day.at('13:00', tz).do(send_news)
-    aioschedule.every().day.at('19:00', tz).do(send_news)
-    aioschedule.every().day.at('23:40', tz).do(send_news)
+    aioschedule.every().day.at('2:30').do(send_news)
+    aioschedule.every().day.at('7:00').do(send_news)
+    aioschedule.every().day.at('11:00').do(send_news)
+    aioschedule.every().day.at('17:45').do(send_news)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -54,4 +51,5 @@ async def on_startup(_):
 
 
 if __name__ == '__main__':
+    print(type(tz))
     executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
