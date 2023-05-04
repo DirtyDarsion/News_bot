@@ -51,5 +51,4 @@ async def on_startup(_):
 
 
 if __name__ == '__main__':
-    print(type(tz))
     executor.start_polling(dp, skip_updates=False, on_startup=on_startup)

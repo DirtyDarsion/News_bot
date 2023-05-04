@@ -50,7 +50,7 @@ def get_data(yandex_api_key):
 
         city = weather['geo_object']['locality']['name']
         temp_fact = weather['fact']['temp']
-        icon = f"https://yastatic.net/weather/i/icons/funky/dark/{weather['fact']['temp']}.svg"
+        icon = f"https://yastatic.net/weather/i/icons/funky/dark/{weather['fact']['icon']}.svg"
         condition_fact = weather['fact']['condition']
         condition_fact = conditions[condition_fact]
 
