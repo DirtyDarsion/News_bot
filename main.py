@@ -56,17 +56,12 @@ async def send_news():
     await bot.send_message(USERNAME, convert_data())
 
 
-async def send_ok():
-    await bot.send_message(USERNAME, 'Сервер активен')
-
-
 @dp.message_handler()
 async def send_answer(message):
     await send_news()
 
 
 async def scheduler():
-    aioschedule.every().hour.do(send_ok)
     aioschedule.every().day.at('8:30').do(send_news)
     aioschedule.every().day.at('13:00').do(send_news)
     aioschedule.every().day.at('19:00').do(send_news)
