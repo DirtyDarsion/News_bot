@@ -34,12 +34,25 @@ def get_data(yandex_api_key):
         valute = response.json()['Valute']
 
         usd = valute['USD']['Value']
+        usd_prev = valute['USD']['Previous']
+        if usd > usd_prev:
+            usd_changes = '⬆'
+        else:
+            usd_changes = '⬇'
         usd = round(usd, 2)
+
         eur = valute['EUR']['Value']
+        eur_prev = valute['EUR']['Previous']
+        if eur > eur_prev:
+            eur_changes = '⬆'
+        else:
+            eur_changes = '⬇'
         eur = round(eur, 2)
     except requests.exceptions.JSONDecodeError:
         usd = 'Ошибка'
+        usd_changes = 'Ошибка'
         eur = 'Ошибка'
+        eur_changes = 'Ошибка'
 
     # Получение данных о погоде
     try:
@@ -62,14 +75,16 @@ def get_data(yandex_api_key):
 
     # Формирование данных для вывода
     data = {
-        'Время': datetime.now(tz).strftime('%H:%M'),
-        'Дата': datetime.now(tz).strftime('%d.%m.%y'),
-        'Курс доллара': usd,
-        'Курс евро': eur,
-        'Город': city,
-        'Температура сейчас': temp_fact,
-        'Иконка': icon,
-        'Погодное описание': condition_fact,
+        'time': datetime.now(tz).strftime('%H:%M'),
+        'date': datetime.now(tz).strftime('%d.%m.%y'),
+        'usd': usd,
+        'usd_changes': usd_changes,
+        'eur': eur,
+        'eur_changes': eur_changes,
+        'city': city,
+        'temp_fact': temp_fact,
+        'icon': icon,
+        'condition_fact': condition_fact,
     }
 
     return data

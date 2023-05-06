@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import asyncio
 import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
-
 from web_server import keep_alive
 from data_shape import get_data
 
@@ -22,10 +21,9 @@ dp = Dispatcher(bot)
 async def send_news():
     data = get_data(YANDEX_API_KEY)
 
-    text = ''
-    for key, item in data.items():
-        text += f'{key}: {item}\n'
-    text = text[:-1]
+    text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
+           f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
+           f"{data['time']} {data['date']}"
 
     await bot.send_message(USERNAME, text)
 
@@ -36,7 +34,6 @@ async def send_answer(message):
 
 
 async def scheduler():
-    aioschedule.every().day.at('2:30').do(send_news)
     aioschedule.every().day.at('7:00').do(send_news)
     aioschedule.every().day.at('11:00').do(send_news)
     aioschedule.every().day.at('17:45').do(send_news)
