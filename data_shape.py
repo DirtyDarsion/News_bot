@@ -16,14 +16,36 @@ conditions = {
     'heavy-rain': 'сильный',
     'continuous-heavy-rain': 'длительный',
     'showers': 'ливень',
-    'wet-snow': 'дождь',
-    'light-snow': 'небольшой',
+    'wet-snow': 'мокрый снег',
+    'light-snow': 'небольшой снег',
     'snow': 'снег',
     'snow-showers': 'снегопад',
     'hail': 'град',
     'thunderstorm': 'гроза',
     'thunderstorm-with-rain': 'дождь',
     'thunderstorm-with-hail': 'гроза',
+}
+
+condition_photo = {
+    'clear': 'clear',
+    'partly-cloudy': 'partly-cloudy',
+    'cloudy': 'cloudy',
+    'overcast': 'overcast',
+    'drizzle': 'rain',
+    'light-rain': 'rain',
+    'rain': 'rain',
+    'moderate-rain': 'rain',
+    'heavy-rain': 'rain',
+    'continuous-heavy-rain': 'rain',
+    'showers': 'rain',
+    'wet-snow': 'snow',
+    'light-snow': 'snow',
+    'snow': 'snow',
+    'snow-showers': 'snow',
+    'hail': 'hail',
+    'thunderstorm': 'thunderstorm',
+    'thunderstorm-with-rain': 'thunderstorm-rain',
+    'thunderstorm-with-hail': 'thunderstorm-rain',
 }
 
 
@@ -49,10 +71,7 @@ def get_data(yandex_api_key):
             eur_changes = '⬇'
         eur = round(eur, 2)
     except requests.exceptions.JSONDecodeError:
-        usd = 'Ошибка'
-        usd_changes = 'Ошибка'
-        eur = 'Ошибка'
-        eur_changes = 'Ошибка'
+        usd, usd_changes, eur, eur_changes = 'Ошибка' * 4
 
     # Получение данных о погоде
     try:
@@ -63,15 +82,12 @@ def get_data(yandex_api_key):
 
         city = weather['geo_object']['locality']['name']
         temp_fact = weather['fact']['temp']
-        icon = f"https://yastatic.net/weather/i/icons/funky/dark/{weather['fact']['icon']}.svg"
         condition_fact = weather['fact']['condition']
+        photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
 
     except requests.exceptions.JSONDecodeError:
-        city = 'Ошибка'
-        temp_fact = 'Ошибка'
-        icon = 'Ошибка'
-        condition_fact = 'Ошибка'
+        city, temp_fact, condition_fact, photo = 'Ошибка' * 4
 
     # Формирование данных для вывода
     data = {
@@ -82,8 +98,8 @@ def get_data(yandex_api_key):
         'eur': eur,
         'eur_changes': eur_changes,
         'city': city,
+        'photo': photo,
         'temp_fact': temp_fact,
-        'icon': icon,
         'condition_fact': condition_fact,
     }
 

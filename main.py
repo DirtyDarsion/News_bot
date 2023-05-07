@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 import asyncio
 import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types.input_file import InputFile
+
 from web_server import keep_alive
 from data_shape import get_data
 
@@ -24,8 +26,9 @@ async def send_news():
     text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
            f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
            f"{data['time']} {data['date']}"
+    photo = InputFile(f"weather_images/{data['photo']}.jpg")
 
-    await bot.send_message(USERNAME, text)
+    await bot.send_photo(USERNAME, photo=photo, caption=text)
 
 
 @dp.message_handler()
