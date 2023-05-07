@@ -23,7 +23,12 @@ dp = Dispatcher(bot)
 async def send_news():
     data = get_data(YANDEX_API_KEY)
 
+    forecasts_text = ''
+    for i in data['forecasts']:
+        forecasts_text += f"{i['date']}: ☀{i['day']}°C - 🌒 {i['night']}°C\n"
+
     text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
+           f"{forecasts_text}\n\n" \
            f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
            f"{data['time']} {data['date']}"
     photo = InputFile(f"weather_images/{data['photo']}.jpg")

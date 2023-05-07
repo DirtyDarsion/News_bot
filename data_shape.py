@@ -86,8 +86,19 @@ def get_data(yandex_api_key):
         photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
 
+        forecasts = []
+        forecasts_request = weather['forecasts'][1:]
+        for i in forecasts_request:
+            date = datetime.strptime(i['date'], '%Y-%m-%d')
+            day_in_fc = {
+                'date': date.strftime('%d.%m'),
+                'day': i['parts']['day']['temp_avg'],
+                'night': i['parts']['night']['temp_avg']
+            }
+            forecasts.append(day_in_fc)
+
     except requests.exceptions.JSONDecodeError:
-        city, temp_fact, condition_fact, photo = 'Ошибка' * 4
+        city, temp_fact, condition_fact, photo, forecasts = 'Ошибка' * 5
 
     # Формирование данных для вывода
     data = {
@@ -101,6 +112,7 @@ def get_data(yandex_api_key):
         'photo': photo,
         'temp_fact': temp_fact,
         'condition_fact': condition_fact,
+        'forecasts': forecasts,
     }
 
     return data
