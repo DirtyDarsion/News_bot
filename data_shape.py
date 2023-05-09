@@ -1,9 +1,20 @@
+import os
 import requests
 import pytz
+import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+
+YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
 
 tz = pytz.timezone('Asia/Omsk')
 
+with open('cities.json', 'r', encoding='UTF-8') as f:
+    cities = json.load(f)
+
+# Перевод всех состояний погоды с Яндекса https://yandex.ru/dev/weather/doc/dg/concepts/forecast-test.html
 conditions = {
     'clear': 'ясно',
     'partly-cloudy': 'малооблачно',
@@ -26,6 +37,7 @@ conditions = {
     'thunderstorm-with-hail': 'гроза',
 }
 
+# Названия картинок для всех состояний погоды
 condition_photo = {
     'clear': 'clear',
     'partly-cloudy': 'partly-cloudy',
@@ -49,7 +61,7 @@ condition_photo = {
 }
 
 
-def get_data(yandex_api_key):
+def get_data(user_data):
     # Получение данных о валюте
     try:
         response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
@@ -75,9 +87,11 @@ def get_data(yandex_api_key):
 
     # Получение данных о погоде
     try:
-        response = requests.get('https://api.weather.yandex.ru/v2/forecast'
-                                '?lat=55.000693&lon=73.240121&[lang=ru-RU]',
-                                headers={'X-Yandex-API-Key': yandex_api_key})
+        response = requests.get(f"https://api.weather.yandex.ru/v2/forecast?"
+                                f"lat={user_data['lat']}&"
+                                f"lon={user_data['lon']}&"
+                                f"[lang=ru-RU]",
+                                headers={'X-Yandex-API-Key': YANDEX_API_KEY})
         weather = response.json()
 
         city = weather['geo_object']['locality']['name']
@@ -116,3 +130,9 @@ def get_data(yandex_api_key):
     }
 
     return data
+
+
+def search_city(name):
+    for obj in cities:
+        if name.lower() == obj['city'].lower():
+            return obj
