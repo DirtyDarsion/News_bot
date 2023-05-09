@@ -25,6 +25,12 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 db = {}
 
+commands = [
+    BotCommand(command='/start', description='Начало работы с ботом'),
+    BotCommand(command='/setcity', description='Сменить установленный город'),
+    BotCommand(command='/help', description='Вывести все доступные комманды'),
+]
+
 
 class User(StatesGroup):
     city = State()
@@ -58,11 +64,34 @@ async def send_news(user_id=None):
 
 @dp.message_handler(commands=['help'])
 async def send_help(message):
+    user_id = message.from_user.id
+
+    if user_id in db:
+        city_info = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
+                    f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n"
+    else:
+        city_info = ''
+
     await message.answer('Данный бот будет отправлять тебе данные прогноза погоды и курса валют.\n\n'
+                         f'{city_info}\n'
                          'Доступные команды:\n'
                          '/start - начало работы,\n'
                          '/setcity - сменить город,\n'
-                         '/help - помощь.')
+                         '/help - помощь.', parse_mode='HTML')
+
+
+@dp.message_handler(commands=['setcity'])
+async def send_cetcity(message):
+    user_id = message.from_user.id
+
+    if user_id in db:
+        text = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
+               f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n\n" \
+               f"Введите название нового города:"
+        await message.answer(text, parse_mode='HTML')
+        await User.city.set()
+    else:
+        await send_start(message)
 
 
 @dp.message_handler(commands=['start'])
@@ -75,7 +104,7 @@ async def send_start(message):
                f"<i>Для смены города введите</i> /setcity"
         await message.answer(text, parse_mode='HTML')
     else:
-        await message.answer('Привет! Для начала напиши свой город:')
+        await message.answer('Напиши свой город:')
         await User.city.set()
 
 
@@ -130,11 +159,6 @@ async def scheduler():
 
 
 async def on_startup(_):
-    commands = [
-        BotCommand(command='/start', description='Начало работы с ботом'),
-        BotCommand(command='/setcity', description='Сменить установленный город'),
-        BotCommand(command='/help', description='Вывести все доступные комманды'),
-    ]
     await bot.set_my_commands(commands)
 
     keep_alive()

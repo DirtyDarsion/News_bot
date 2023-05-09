@@ -1,15 +1,12 @@
 import os
 import requests
-import pytz
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
 YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
-
-tz = pytz.timezone('Asia/Omsk')
 
 with open('cities.json', 'r', encoding='UTF-8') as f:
     cities = json.load(f)
@@ -110,14 +107,17 @@ def get_data(user_data):
                 'night': i['parts']['night']['temp_avg']
             }
             forecasts.append(day_in_fc)
-
     except requests.exceptions.JSONDecodeError:
         city, temp_fact, condition_fact, photo, forecasts = 'Ошибка' * 5
 
-    # Формирование данных для вывода
+    # Формирование даты
+    utc = int(user_data['timezone'][4:])
+    tz = timedelta(hours=utc)
+    dt = datetime.now() + tz
+
     data = {
-        'time': datetime.now(tz).strftime('%H:%M'),
-        'date': datetime.now(tz).strftime('%d.%m.%y'),
+        'time': dt.strftime('%H:%M'),
+        'date': dt.strftime('%d.%m.%y'),
         'usd': usd,
         'usd_changes': usd_changes,
         'eur': eur,
