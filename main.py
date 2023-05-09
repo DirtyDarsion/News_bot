@@ -28,6 +28,7 @@ commands = [
     BotCommand(command='/start', description='Начало работы с ботом'),
     BotCommand(command='/setcity', description='Сменить установленный город'),
     BotCommand(command='/help', description='Вывести все доступные комманды'),
+    BotCommand(command='/print', description='test'),
 ]
 
 
