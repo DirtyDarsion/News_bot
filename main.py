@@ -8,7 +8,6 @@ import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import BotCommand
 from aiogram.types.input_file import InputFile
-# from aiogram.dispatcher.filters import IDFilter
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -47,8 +46,7 @@ async def send_news_core(user_data):
     text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
            f"{forecasts_text}\n\n" \
            f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
-           f"{data['time']} {data['date']}\n" \
-           f"{data['city']}"
+           f"Время сервера: {data['time']} {data['date']} ({data['city']})"
     photo = InputFile(f"weather_images/{data['photo']}.jpg")
 
     await bot.send_photo(user_data['id'], photo=photo, caption=text)
@@ -78,20 +76,6 @@ async def send_help(message):
                          '/start - начало работы,\n'
                          '/setcity - сменить город,\n'
                          '/help - помощь.', parse_mode='HTML')
-
-
-@dp.message_handler(commands=['setcity'])
-async def send_cetcity(message):
-    user_id = message.from_user.id
-
-    if user_id in db:
-        text = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
-               f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n\n" \
-               f"Введите название нового города:"
-        await message.answer(text, parse_mode='HTML')
-        await User.city.set()
-    else:
-        await send_start(message)
 
 
 @dp.message_handler(commands=['start'])
@@ -134,6 +118,20 @@ async def city_choosen(message: types.Message, state: FSMContext):
         }
     else:
         await message.answer(f"Такого города нет, попробуйте еще раз: /start")
+
+
+@dp.message_handler(commands=['setcity'])
+async def send_cetcity(message):
+    user_id = message.from_user.id
+
+    if user_id in db:
+        text = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
+               f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n\n" \
+               f"Введите название нового города:"
+        await message.answer(text, parse_mode='HTML')
+        await User.city.set()
+    else:
+        await send_start(message)
 
 
 @dp.message_handler(commands=['print'])
