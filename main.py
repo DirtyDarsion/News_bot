@@ -22,7 +22,12 @@ TOKEN = os.getenv('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-db = {}
+DB_REPLIT = int(os.getenv('DB_REPLIT'))
+
+if DB_REPLIT:
+    from replit import db
+else:
+    db = {}
 
 commands = [
     BotCommand(command='/start', description='Начало работы с ботом'),
@@ -72,7 +77,7 @@ async def send_help(message):
         city_info = ''
 
     await message.answer('Данный бот будет отправлять тебе данные прогноза погоды и курса валют.\n\n'
-                         f'{city_info}\n'
+                         f'{city_info}'
                          'Доступные команды:\n'
                          '/start - начало работы,\n'
                          '/setcity - сменить город,\n'
@@ -137,7 +142,8 @@ async def send_cetcity(message):
 
 @dp.message_handler(commands=['print'])
 async def send_print(message):
-    await bot.send_message(message.from_user.id, db)
+    await bot.send_message(message.from_user.id, str(db))
+    await bot.send_message(message.from_user.id, str(DB_REPLIT))
 
 
 @dp.message_handler()
