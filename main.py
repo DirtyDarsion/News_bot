@@ -145,7 +145,6 @@ async def send_cetcity(message):
 @dp.message_handler(commands=['print'])
 async def send_print(message):
     await bot.send_message(message.from_user.id, str(db))
-    await bot.send_message(message.from_user.id, str(DB_REPLIT))
 
 
 @dp.message_handler()
