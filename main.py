@@ -23,11 +23,13 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 DB_REPLIT = int(os.getenv('DB_REPLIT'))
-
+'''
 if DB_REPLIT:
     from replit import db
 else:
     db = {}
+'''
+db = {}
 
 commands = [
     BotCommand(command='/start', description='Начало работы с ботом'),
