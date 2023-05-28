@@ -13,7 +13,6 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
-from web_server import keep_alive
 from data_shape import get_data, search_city
 
 load_dotenv()
@@ -255,7 +254,6 @@ async def scheduler():
 async def on_startup(_):
     await bot.set_my_commands(commands)
 
-    keep_alive()
     asyncio.create_task(scheduler())
 
 
