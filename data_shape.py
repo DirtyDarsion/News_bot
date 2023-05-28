@@ -95,6 +95,7 @@ def get_data(user_data):
         condition_fact = weather['fact']['condition']
         photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
+
         '''
         Получение названия города и значения Яндекс.Погоды API тариф - "Тестовый"
         
@@ -112,8 +113,9 @@ def get_data(user_data):
         '''
     except requests.exceptions.JSONDecodeError:
         temp_fact, condition_fact, photo = 'Ошибка' * 3
+
         '''
-        Яндекс.Погоды API тариф - "Тестовый"
+        Яндекс.Погода API тариф - "Тестовый"
         
         city, forecast = 'Ошибка' * 2
         '''
