@@ -46,14 +46,17 @@ class TimeTask(StatesGroup):
 async def send_news_core(user_data):
     data = get_data(user_data)
 
+    '''
+    Перебор прогноза с Яндекс.Погоды API тариф - "Тестовый"
+    
     forecasts_text = ''
     for i in data['forecasts']:
         forecasts_text += f"{i['date']}: ☀{i['day']}°C - 🌒 {i['night']}°C\n"
+    '''
 
     text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
-           f"{forecasts_text}\n\n" \
            f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
-           f"Время сервера: {data['time']} {data['date']} ({data['city']})"
+           f"Время сервера: {data['time']} {data['date']}"
     photo = InputFile(f"weather_images/{data['photo']}.jpg")
 
     await bot.send_photo(user_data['id'], photo=photo, caption=text)

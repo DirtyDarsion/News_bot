@@ -84,19 +84,21 @@ def get_data(user_data):
 
     # Получение данных о погоде
     try:
-        response = requests.get(f"https://api.weather.yandex.ru/v2/forecast?"
+        response = requests.get(f"https://api.weather.yandex.ru/v2/informers?"
                                 f"lat={user_data['lat']}&"
                                 f"lon={user_data['lon']}&"
                                 f"[lang=ru-RU]",
                                 headers={'X-Yandex-API-Key': YANDEX_API_KEY})
         weather = response.json()
 
-        city = weather['geo_object']['locality']['name']
         temp_fact = weather['fact']['temp']
         condition_fact = weather['fact']['condition']
         photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
-
+        '''
+        Получение названия города и значения Яндекс.Погоды API тариф - "Тестовый"
+        
+        city = weather['geo_object']['locality']['name']
         forecasts = []
         forecasts_request = weather['forecasts'][1:]
         for i in forecasts_request:
@@ -107,8 +109,14 @@ def get_data(user_data):
                 'night': i['parts']['night']['temp_avg']
             }
             forecasts.append(day_in_fc)
+        '''
     except requests.exceptions.JSONDecodeError:
-        city, temp_fact, condition_fact, photo, forecasts = 'Ошибка' * 5
+        temp_fact, condition_fact, photo = 'Ошибка' * 3
+        '''
+        Яндекс.Погоды API тариф - "Тестовый"
+        
+        city, forecast = 'Ошибка' * 2
+        '''
 
     # Формирование даты
     utc = int(user_data['timezone'][4:])
@@ -122,11 +130,9 @@ def get_data(user_data):
         'usd_changes': usd_changes,
         'eur': eur,
         'eur_changes': eur_changes,
-        'city': city,
         'photo': photo,
         'temp_fact': temp_fact,
         'condition_fact': condition_fact,
-        'forecasts': forecasts,
     }
 
     return data
