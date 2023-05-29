@@ -18,7 +18,7 @@ conditions = {
     'cloudy': 'облачно',
     'overcast': 'пасмурно',
     'drizzle': 'морось',
-    'light-rain': 'небольшой',
+    'light-rain': 'небольшой дождь',
     'rain': 'дождь',
     'moderate-rain': 'умеренно',
     'heavy-rain': 'сильный',
@@ -91,34 +91,29 @@ def get_data(user_data):
                                 headers={'X-Yandex-API-Key': YANDEX_API_KEY})
         weather = response.json()
 
+        try:
+            forecasts = []
+            forecasts_request = weather['forecasts'][1:]
+            for i in forecasts_request:
+                date = datetime.strptime(i['date'], '%Y-%m-%d')
+                day_in_fc = {
+                    'date': date.strftime('%d.%m'),
+                    'day': i['parts']['day']['temp_avg'],
+                    'night': i['parts']['night']['temp_avg']
+                }
+                forecasts.append(day_in_fc)
+        except KeyError:
+            forecasts = None
+
         temp_fact = weather['fact']['temp']
         condition_fact = weather['fact']['condition']
         photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
 
-        '''
-        Получение названия города и значения Яндекс.Погоды API тариф - "Тестовый"
-        
-        city = weather['geo_object']['locality']['name']
-        forecasts = []
-        forecasts_request = weather['forecasts'][1:]
-        for i in forecasts_request:
-            date = datetime.strptime(i['date'], '%Y-%m-%d')
-            day_in_fc = {
-                'date': date.strftime('%d.%m'),
-                'day': i['parts']['day']['temp_avg'],
-                'night': i['parts']['night']['temp_avg']
-            }
-            forecasts.append(day_in_fc)
-        '''
     except requests.exceptions.JSONDecodeError:
-        temp_fact, condition_fact, photo = 'Ошибка' * 3
-
-        '''
-        Яндекс.Погода API тариф - "Тестовый"
-        
-        city, forecast = 'Ошибка' * 2
-        '''
+        temp_fact, condition_fact = ['Ошибка соединения' for i in range(2)]
+        forecasts = None
+        photo = 'error'
 
     # Формирование даты
     utc = int(user_data['timezone'][4:])
@@ -135,6 +130,7 @@ def get_data(user_data):
         'photo': photo,
         'temp_fact': temp_fact,
         'condition_fact': condition_fact,
+        'forecasts': forecasts,
     }
 
     return data
