@@ -4,6 +4,8 @@ import json
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
+from db_conn import get_user
+
 load_dotenv()
 
 YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
@@ -58,7 +60,8 @@ condition_photo = {
 }
 
 
-def get_data(user_data):
+def get_data(user_id):
+    user_data = get_user(user_id)
     # Получение данных о валюте
     try:
         response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')

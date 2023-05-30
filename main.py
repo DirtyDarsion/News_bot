@@ -14,10 +14,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from data_shape import get_data, search_city
+from db_conn import update_user, get_user
 
 load_dotenv()
 
-ADMIN = int(os.getenv('ADMIN'))
 TOKEN = os.getenv('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -30,7 +30,6 @@ commands = [
     BotCommand(command='/start', description='Начало работы с ботом'),
     BotCommand(command='/setcity', description='Сменить установленный город'),
     BotCommand(command='/help', description='Вывести все доступные комманды'),
-    BotCommand(command='/print', description='print'),
 ]
 
 
@@ -43,8 +42,8 @@ class TimeTask(StatesGroup):
 
 
 # Функция формирования и отправки сообщения с информацией
-async def send_news_core(user_data):
-    data = get_data(user_data)
+async def send_news(user_id):
+    data = get_data(user_id)
     
     forecasts_text = ''
     if data['forecasts']:
@@ -59,30 +58,23 @@ async def send_news_core(user_data):
            f"Время: {data['time']} {data['date']}"
     photo = InputFile(f"weather_images/{data['photo']}.jpg")
 
-    await bot.send_photo(user_data['id'], photo=photo, caption=text)
-
-
-async def send_news(user_id=None):
-    if user_id:
-        await send_news_core(db[user_id])
-    else:
-        for user in db:
-            await send_news_core(db[user])
+    await bot.send_photo(user_id, photo=photo, caption=text)
 
 
 @dp.message_handler(commands=['help'])
 async def send_help(message):
     user_id = message.from_user.id
+    db_user = get_user(user_id)
 
-    if user_id in db:
-        city_info = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
-                    f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n"
+    if db_user:
+        city_info = f"Ваш город: <b>{db_user['city']}</b>\n" \
+                    f"Часовой пояс: <b>{db_user['timezone']}</b>\n"
     else:
         city_info = ''
 
-    await message.answer('Данный бот будет отправлять тебе данные прогноза погоды и курса валют.\n'
+    await message.answer('Данный бот будет отправлять тебе данные прогноза погоды и курса валют.\n\n'
                          'Для получения сообщения по времени введи /task, либо отправь любое сообщение.\n\n'
-                         f'{city_info}'
+                         f'{city_info}\n'
                          'Доступные команды:\n'
                          '/task - прогноз по рассписанию,\n'
                          '/start - начало работы,\n'
@@ -94,11 +86,13 @@ async def send_help(message):
 @dp.message_handler(commands=['start'])
 async def send_start(message):
     user_id = message.from_user.id
+    db_data = get_user(user_id)
 
-    if user_id in db:
-        text = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
-               f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n\n" \
+    if db_data:
+        text = f"Ваш город: <b>{db_data['city']}</b>\n" \
+               f"Часовой пояс: <b>{db_data['timezone']}</b>\n\n" \
                f"<i>Для смены города введите</i> /setcity"
+
         await message.answer(text, parse_mode='HTML')
     else:
         await message.answer('Напиши свой город:')
@@ -120,16 +114,15 @@ async def city_choosen(message: types.Message, state: FSMContext):
 
         text = f"Вы выбрали: <b>{obj['city']}{region}</b>\n\n" \
                f"<i>Для смены города введите</i> /setcity"
-        await message.answer(text, parse_mode='HTML')
 
-        db[message.from_user.id] = {
-            'id': message.from_user.id,
-            'city': obj['city'],
-            'timezone': obj['timezone'],
-            'lat': obj['lat'],
-            'lon': obj['lon'],
-            'tasks': {},
-        }
+        update_user(
+            tg_id=message.from_user.id,
+            city=obj['city'],
+            timezone=obj['timezone'],
+            lat=obj['lat'],
+            lon=obj['lon']
+        )
+        await message.answer(text, parse_mode='HTML')
     else:
         await message.answer(f"Такого города нет, попробуйте еще раз: /setcity или /start")
 
@@ -137,10 +130,11 @@ async def city_choosen(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['setcity'])
 async def send_cetcity(message):
     user_id = message.from_user.id
+    db_user = get_user(user_id)
 
-    if user_id in db:
-        text = f"Ваш город: <b>{db[user_id]['city']}</b>\n" \
-               f"Часовой пояс: <b>{db[user_id]['timezone']}</b>\n\n" \
+    if db_user:
+        text = f"Ваш город: <b>{db_user['city']}</b>\n" \
+               f"Часовой пояс: <b>{db_user['timezone']}</b>\n\n" \
                f"Введите название нового города:"
         await message.answer(text, parse_mode='HTML')
         await User.city.set()
@@ -234,18 +228,13 @@ async def delete_task_num(callback_query: types.CallbackQuery):
     await bot.edit_message_text('Успешно!', user_id, data['task_message'])
 
 
-@dp.message_handler(commands=['print'])
-async def send_print(message):
-    if message.from_user.id == ADMIN:
-        await bot.send_message(message.from_user.id, str(db))
-
-
 @dp.message_handler()
 async def send_answer(message):
-    if message.from_user.id in db:
+    db_user = get_user(message.from_user.id)
+    if db_user:
         await send_news(message.from_user.id)
     else:
-        await message.answer('Вас нет в базе. Введите комманду /start')
+        await message.answer('Вы не зарегестрированы, введите комманду /start')
 
 
 async def scheduler():
@@ -261,4 +250,4 @@ async def on_startup(_):
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
+    executor.start_polling(dp, on_startup=on_startup)
