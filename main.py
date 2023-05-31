@@ -14,7 +14,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from data_shape import get_data, search_city
-from db_conn import update_user, get_user_data, set_task_message
+from db_conn import update_user, get_user_data
 
 load_dotenv()
 
