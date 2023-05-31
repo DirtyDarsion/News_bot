@@ -14,19 +14,17 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from data_shape import get_data, search_city
-from db_conn import update_user, get_user
+from db_conn import update_user, get_user_data, set_task_message
 
 load_dotenv()
 
+ADMIN = os.getenv('ADMIN')
 TOKEN = os.getenv('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-db = {
-}
-
 commands = [
-    BotCommand(command='/task', description='Параметры рассылки по времени'),
+    # BotCommand(command='/task', description='Параметры рассылки по времени'),
     BotCommand(command='/start', description='Начало работы с ботом'),
     BotCommand(command='/setcity', description='Сменить установленный город'),
     BotCommand(command='/help', description='Вывести все доступные комманды'),
@@ -64,7 +62,7 @@ async def send_news(user_id):
 @dp.message_handler(commands=['help'])
 async def send_help(message):
     user_id = message.from_user.id
-    db_user = get_user(user_id)
+    db_user = get_user_data(user_id)
 
     if db_user:
         city_info = f"Ваш город: <b>{db_user['city']}</b>\n" \
@@ -86,7 +84,7 @@ async def send_help(message):
 @dp.message_handler(commands=['start'])
 async def send_start(message):
     user_id = message.from_user.id
-    db_data = get_user(user_id)
+    db_data = get_user_data(user_id)
 
     if db_data:
         text = f"Ваш город: <b>{db_data['city']}</b>\n" \
@@ -130,7 +128,7 @@ async def city_choosen(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['setcity'])
 async def send_cetcity(message):
     user_id = message.from_user.id
-    db_user = get_user(user_id)
+    db_user = get_user_data(user_id)
 
     if db_user:
         text = f"Ваш город: <b>{db_user['city']}</b>\n" \
@@ -141,14 +139,18 @@ async def send_cetcity(message):
     else:
         await send_start(message)
 
+'''
+Вызов прогноза по расписанию
+Необходимо настроить под базу данных
 
 @dp.message_handler(commands=['task'])
 async def set_task(message):
     user_id = message.from_user.id
-    if user_id in db:
-        data = db[user_id]
-        data['task_message'] = message.message_id + 1
-        tasks = data['tasks']
+    db_user = get_user_data(user_id)
+
+    if db_user:
+        set_task_message(user_id, message.message_id + 1)
+        tasks = db_user['tasks']
 
         if tasks:
             task_text = ''
@@ -172,9 +174,9 @@ async def set_task(message):
 async def create_task(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
-    data = db[user_id]
+    db_user = get_user_data(user_id)
 
-    await bot.edit_message_text('Введите время в формате "ЧЧ:ММ"', user_id, data['task_message'])
+    await bot.edit_message_text('Введите время в формате "ЧЧ:ММ"', user_id, db_user['task_message'])
     await TimeTask.time_task.set()
 
 
@@ -184,18 +186,18 @@ async def set_time(message: types.Message, state: FSMContext):
     state_data = await state.get_data()
     await state.finish()
     user_id = message.from_user.id
-    tasks = db[user_id]['tasks']
+    db_user = get_user_data(user_id)
 
     user_time = state_data['time_task']
     time_split = user_time.split(':')
     if time_split[0].isdigit() and time_split[1].isdigit() and len(time_split) == 2:
         user_time_str = datetime.strptime(user_time, "%H:%M").strftime("%H:%M")
-        utc = int(db[user_id]['timezone'][4:])
+        utc = int(db_user['timezone'][4:])
         time_with_utc = datetime.strptime(user_time, "%H:%M") - timedelta(hours=utc)
         time_with_utc = time_with_utc.strftime('%H:%M')
 
         task = aioschedule.every().day.at(time_with_utc).do(send_news, user_id)
-        tasks[user_time_str] = task
+        db_user['tasks'][user_time_str] = task
         await bot.send_message(user_id, 'Время добавлено!')
     else:
         await bot.send_message(user_id, 'Время написано не по формату.')
@@ -226,11 +228,12 @@ async def delete_task_num(callback_query: types.CallbackQuery):
     aioschedule.cancel_job(tasks.pop(task))
 
     await bot.edit_message_text('Успешно!', user_id, data['task_message'])
+'''
 
 
 @dp.message_handler()
 async def send_answer(message):
-    db_user = get_user(message.from_user.id)
+    db_user = get_user_data(message.from_user.id)
     if db_user:
         await send_news(message.from_user.id)
     else:
@@ -245,6 +248,9 @@ async def scheduler():
 
 async def on_startup(_):
     await bot.set_my_commands(commands)
+    aioschedule.every().day.at('2:30').do(send_news, ADMIN)
+    aioschedule.every().day.at('7:00').do(send_news, ADMIN)
+    aioschedule.every().day.at('11:00').do(send_news, ADMIN)
 
     asyncio.create_task(scheduler())
 

@@ -29,7 +29,7 @@ def update_user(tg_id, city, timezone, lat, lon):
     conn.close()
 
 
-def get_user(tg_id):
+def get_user_data(tg_id):
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
     cursor = conn.cursor()
 
