@@ -23,15 +23,6 @@ TOKEN = os.getenv('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-# webhook settings
-WEBHOOK_HOST = os.getenv('WEBHOOK_HOST')
-WEBHOOK_PATH = f'/webhook/{TOKEN}'
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-# webserver settings
-WEBAPP_HOST = 'localhost'
-WEBAPP_PORT = 5000
-
 commands = [
     # BotCommand(command='/task', description='Параметры рассылки по времени'),
     BotCommand(command='/start', description='Начало работы с ботом'),
@@ -256,8 +247,6 @@ async def scheduler():
 
 
 async def on_startup(_):
-    await bot.set_webhook(WEBHOOK_URL)
-
     await bot.set_my_commands(commands)
 
     aioschedule.every().day.at('2:30').do(send_news, ADMIN)
@@ -267,10 +256,7 @@ async def on_startup(_):
 
 
 if __name__ == '__main__':
-    executor.start_webhook(
+    executor.start_polling(
         dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
         on_startup=on_startup,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
     )
