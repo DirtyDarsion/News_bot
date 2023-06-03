@@ -263,7 +263,7 @@ async def on_startup(_):
     aioschedule.every().day.at('2:30').do(send_news, ADMIN)
     aioschedule.every().day.at('7:00').do(send_news, ADMIN)
     aioschedule.every().day.at('11:00').do(send_news, ADMIN)
-    await asyncio.create_task(scheduler())
+    asyncio.create_task(scheduler())
 
 
 if __name__ == '__main__':
