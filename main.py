@@ -30,7 +30,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 # webserver settings
 WEBAPP_HOST = 'localhost'
-WEBAPP_PORT = 3001
+WEBAPP_PORT = 5000
 
 commands = [
     # BotCommand(command='/task', description='Параметры рассылки по времени'),
