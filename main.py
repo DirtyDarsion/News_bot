@@ -1,6 +1,4 @@
 import os
-import requests
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 import asyncio
@@ -8,7 +6,6 @@ import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import BotCommand
 from aiogram.types.input_file import InputFile
-from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -27,7 +24,7 @@ commands = [
     # BotCommand(command='/task', description='Параметры рассылки по времени'),
     BotCommand(command='/start', description='Начало работы с ботом'),
     BotCommand(command='/setcity', description='Сменить установленный город'),
-    BotCommand(command='/help', description='Вывести все доступные комманды'),
+    BotCommand(command='/help', description='Вывести все доступные команды'),
 ]
 
 
@@ -50,7 +47,7 @@ async def send_news(user_id):
     else:
         forecasts_text = 'Ошибка в получении прогноза'
 
-    text = f"Тепература: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
+    text = f"Температура: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
            f"{forecasts_text}\n\n" \
            f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
            f"Время: {data['time']} {data['date']}"
@@ -74,7 +71,7 @@ async def send_help(message):
                          'Для получения сообщения по времени введи /task, либо отправь любое сообщение.\n\n'
                          f'{city_info}\n'
                          'Доступные команды:\n'
-                         '/task - прогноз по рассписанию,\n'
+                         '/task - прогноз по расписанию,\n'
                          '/start - начало работы,\n'
                          '/setcity - сменить город,\n'
                          '/help - помощь.',
@@ -98,7 +95,7 @@ async def send_start(message):
 
 
 @dp.message_handler(state=User.city)
-async def city_choosen(message: types.Message, state: FSMContext):
+async def city_chosen(message: types.Message, state: FSMContext):
     await state.update_data(city=message.text)
     data = await state.get_data()
     await state.finish()
@@ -126,7 +123,7 @@ async def city_choosen(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(commands=['setcity'])
-async def send_cetcity(message):
+async def send_setcity(message):
     user_id = message.from_user.id
     db_user = get_user_data(user_id)
 
@@ -237,7 +234,7 @@ async def send_answer(message):
     if db_user:
         await send_news(message.from_user.id)
     else:
-        await message.answer('Вы не зарегестрированы, введите комманду /start')
+        await message.answer('Вы не зарегистрированы, введите команду /start')
 
 
 async def scheduler():

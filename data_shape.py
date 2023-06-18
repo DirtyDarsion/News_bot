@@ -114,7 +114,7 @@ def get_data(user_id):
         condition_fact = conditions[condition_fact]
 
     except requests.exceptions.JSONDecodeError:
-        temp_fact, condition_fact = ['Ошибка соединения' for i in range(2)]
+        temp_fact, condition_fact = ['Ошибка соединения' for _ in range(2)]
         forecasts = None
         photo = 'error'
 
