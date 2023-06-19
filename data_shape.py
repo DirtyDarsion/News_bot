@@ -15,25 +15,25 @@ with open('cities.json', 'r', encoding='UTF-8') as f:
 
 # Перевод всех состояний погоды с Яндекса https://yandex.ru/dev/weather/doc/dg/concepts/forecast-test.html
 conditions = {
-    'clear': 'ясно',
-    'partly-cloudy': 'малооблачно',
-    'cloudy': 'облачно',
-    'overcast': 'пасмурно',
-    'drizzle': 'морось',
-    'light-rain': 'небольшой дождь',
-    'rain': 'дождь',
-    'moderate-rain': 'умеренно',
-    'heavy-rain': 'сильный',
-    'continuous-heavy-rain': 'длительный',
-    'showers': 'ливень',
-    'wet-snow': 'мокрый снег',
-    'light-snow': 'небольшой снег',
-    'snow': 'снег',
-    'snow-showers': 'снегопад',
-    'hail': 'град',
-    'thunderstorm': 'гроза',
-    'thunderstorm-with-rain': 'дождь',
-    'thunderstorm-with-hail': 'гроза',
+    'clear': 'Ясно',
+    'partly-cloudy': 'Малооблачно',
+    'cloudy': 'Облачно',
+    'overcast': 'Пасмурно',
+    'drizzle': 'Морось',
+    'light-rain': 'Небольшой дождь',
+    'rain': 'Дождь',
+    'moderate-rain': 'Умеренно',
+    'heavy-rain': 'Сильный',
+    'continuous-heavy-rain': 'Длительный',
+    'showers': 'Ливень',
+    'wet-snow': 'Мокрый снег',
+    'light-snow': 'Небольшой снег',
+    'snow': 'Снег',
+    'snow-showers': 'Снегопад',
+    'hail': 'Град',
+    'thunderstorm': 'Гроза',
+    'thunderstorm-with-rain': 'Дождь',
+    'thunderstorm-with-hail': 'Гроза',
 }
 
 # Названия картинок для всех состояний погоды
@@ -109,12 +109,13 @@ def get_data(user_id):
             forecasts = None
 
         temp_fact = weather['fact']['temp']
+        feels_like = weather['fact']['feels_like']
         condition_fact = weather['fact']['condition']
         photo = condition_photo[condition_fact]
         condition_fact = conditions[condition_fact]
 
     except requests.exceptions.JSONDecodeError:
-        temp_fact, condition_fact = ['Ошибка соединения' for _ in range(2)]
+        temp_fact, feels_like, condition_fact = ['Ошибка соединения' for _ in range(3)]
         forecasts = None
         photo = 'error'
 
@@ -132,6 +133,7 @@ def get_data(user_id):
         'eur_changes': eur_changes,
         'photo': photo,
         'temp_fact': temp_fact,
+        'feels_like': feels_like,
         'condition_fact': condition_fact,
         'forecasts': forecasts,
     }

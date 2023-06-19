@@ -21,7 +21,6 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 commands = [
-    # BotCommand(command='/task', description='Параметры рассылки по времени'),
     BotCommand(command='/start', description='Начало работы с ботом'),
     BotCommand(command='/setcity', description='Сменить установленный город'),
     BotCommand(command='/help', description='Вывести все доступные команды'),
@@ -43,17 +42,16 @@ async def send_news(user_id):
     forecasts_text = ''
     if data['forecasts']:
         for i in data['forecasts']:
-            forecasts_text += f"{i['date']}: ☀{i['day']}°C - 🌒 {i['night']}°C\n"
-    else:
-        forecasts_text = 'Ошибка в получении прогноза'
+            forecasts_text += f"{i['date']}: ☀{i['day']}°C - 🌒 {i['night']}°C\n\n\n"
 
-    text = f"Температура: {data['temp_fact']}°C, {data['condition_fact']}\n\n" \
-           f"{forecasts_text}\n\n" \
-           f"Доллар: {data['usd']}{data['usd_changes']}\nЕвро: {data['eur']}{data['eur_changes']}\n\n" \
-           f"Время: {data['time']} {data['date']}"
+    text = f"Температура: <b>{data['temp_fact']}°C</b>, ощущается <b>{data['feels_like']}°C</b>\n" \
+           f"{data['condition_fact']}\n\n" \
+           f"{forecasts_text}" \
+           f"Доллар: <b>{data['usd']}</b>{data['usd_changes']}\nЕвро: <b>{data['eur']}</b>{data['eur_changes']}\n\n" \
+           f"Время: <b>{data['time']}</b> <i>{data['date']}</i>"
     photo = InputFile(f"weather_images/{data['photo']}.jpg")
 
-    await bot.send_photo(user_id, photo=photo, caption=text)
+    await bot.send_photo(user_id, photo=photo, caption=text, parse_mode='HTML')
 
 
 @dp.message_handler(commands=['help'])
@@ -135,97 +133,6 @@ async def send_setcity(message):
         await User.city.set()
     else:
         await send_start(message)
-
-'''
-Вызов прогноза по расписанию
-Необходимо настроить под базу данных
-
-@dp.message_handler(commands=['task'])
-async def set_task(message):
-    user_id = message.from_user.id
-    db_user = get_user_data(user_id)
-
-    if db_user:
-        set_task_message(user_id, message.message_id + 1)
-        tasks = db_user['tasks']
-
-        if tasks:
-            task_text = ''
-            for key in tasks:
-                task_text += key + ', '
-            task_text = task_text[:-2]
-        else:
-            task_text = 'Нет установленного времени'
-        text = f"Сообщения будут приходить: <b>{task_text}</b>."
-
-        button_create = InlineKeyboardButton('Назначить время',  callback_data='create_task')
-        button_delete = InlineKeyboardButton('Удалить время', callback_data='delete_task')
-        keyboard = InlineKeyboardMarkup().add(button_create, button_delete)
-
-        await message.answer(text, reply_markup=keyboard, parse_mode='HTML')
-    else:
-        await send_start(message)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'create_task')
-async def create_task(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
-    user_id = callback_query.from_user.id
-    db_user = get_user_data(user_id)
-
-    await bot.edit_message_text('Введите время в формате "ЧЧ:ММ"', user_id, db_user['task_message'])
-    await TimeTask.time_task.set()
-
-
-@dp.message_handler(state=TimeTask.time_task)
-async def set_time(message: types.Message, state: FSMContext):
-    await state.update_data(time_task=message.text)
-    state_data = await state.get_data()
-    await state.finish()
-    user_id = message.from_user.id
-    db_user = get_user_data(user_id)
-
-    user_time = state_data['time_task']
-    time_split = user_time.split(':')
-    if time_split[0].isdigit() and time_split[1].isdigit() and len(time_split) == 2:
-        user_time_str = datetime.strptime(user_time, "%H:%M").strftime("%H:%M")
-        utc = int(db_user['timezone'][4:])
-        time_with_utc = datetime.strptime(user_time, "%H:%M") - timedelta(hours=utc)
-        time_with_utc = time_with_utc.strftime('%H:%M')
-
-        task = aioschedule.every().day.at(time_with_utc).do(send_news, user_id)
-        db_user['tasks'][user_time_str] = task
-        await bot.send_message(user_id, 'Время добавлено!')
-    else:
-        await bot.send_message(user_id, 'Время написано не по формату.')
-
-
-@dp.callback_query_handler(lambda c: c.data == 'delete_task')
-async def delete_task(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
-    user_id = callback_query.from_user.id
-    data = db[user_id]
-    tasks = data['tasks']
-
-    keyboard = InlineKeyboardMarkup()
-    for task in tasks:
-        keyboard.add(InlineKeyboardButton(task, callback_data='delete:'+task))
-
-    await bot.edit_message_text('Выберите время для удаления:', user_id, data['task_message'], reply_markup=keyboard)
-
-
-@dp.callback_query_handler(lambda c: c.data[:7] == 'delete:')
-async def delete_task_num(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
-    user_id = callback_query.from_user.id
-    data = db[user_id]
-    tasks = data['tasks']
-    task = callback_query.data[7:]
-
-    aioschedule.cancel_job(tasks.pop(task))
-
-    await bot.edit_message_text('Успешно!', user_id, data['task_message'])
-'''
 
 
 @dp.message_handler()
